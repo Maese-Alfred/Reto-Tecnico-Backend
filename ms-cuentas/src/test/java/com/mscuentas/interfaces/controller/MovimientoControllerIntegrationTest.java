@@ -10,12 +10,13 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.http.MediaType;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.setup.MockMvcBuilders;
+import org.springframework.web.context.WebApplicationContext;
 
 import java.math.BigDecimal;
 
@@ -24,27 +25,28 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @SpringBootTest
-@AutoConfigureMockMvc
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
 @DisplayName("MovimientoController - Pruebas de integración")
 class MovimientoControllerIntegrationTest {
 
     @Autowired
-    private MockMvc mockMvc;
+    private WebApplicationContext wac;
 
-    @Autowired
-    private ObjectMapper objectMapper;
+    private final ObjectMapper objectMapper = new ObjectMapper();
 
     @Autowired
     private JpaCuentaRepository jpaCuentaRepository;
 
-    @MockBean
+    @MockitoBean
     private RabbitTemplate rabbitTemplate;
 
     private static final String CUENTA_ID = "cuenta-integ-01";
 
+    private MockMvc mockMvc;
+
     @BeforeEach
     void setUp() {
+        mockMvc = MockMvcBuilders.webAppContextSetup(wac).build();
         if (!jpaCuentaRepository.existsById(CUENTA_ID)) {
             CuentaEntity cuenta = new CuentaEntity();
             cuenta.setCuentaId(CUENTA_ID);

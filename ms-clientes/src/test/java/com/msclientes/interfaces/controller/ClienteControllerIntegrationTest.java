@@ -2,34 +2,41 @@ package com.msclientes.interfaces.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.msclientes.application.dto.ClienteRequestDTO;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.http.MediaType;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.setup.MockMvcBuilders;
+import org.springframework.web.context.WebApplicationContext;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @SpringBootTest
-@AutoConfigureMockMvc
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
 @DisplayName("ClienteController - Pruebas de integración")
 class ClienteControllerIntegrationTest {
 
     @Autowired
+    private WebApplicationContext wac;
+
+    private final ObjectMapper objectMapper = new ObjectMapper();
+
+    @MockitoBean
+    private RabbitTemplate rabbitTemplate;
+
     private MockMvc mockMvc;
 
-    @Autowired
-    private ObjectMapper objectMapper;
-
-    @MockBean
-    private RabbitTemplate rabbitTemplate;
+    @BeforeEach
+    void setUp() {
+        mockMvc = MockMvcBuilders.webAppContextSetup(wac).build();
+    }
 
     @Test
     @DisplayName("POST /clientes: crea cliente → 201 y retorna datos")
@@ -94,7 +101,6 @@ class ClienteControllerIntegrationTest {
         dto.setDireccion("Av. Principal 100");
         dto.setTelefono("0991234567");
         dto.setContrasena("Pass1234");
-        dto.setEstado(true);
         return dto;
     }
 }

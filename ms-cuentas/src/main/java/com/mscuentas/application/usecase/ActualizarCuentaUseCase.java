@@ -4,7 +4,6 @@ import com.mscuentas.application.dto.ActualizarCuentaRequestDTO;
 import com.mscuentas.application.dto.CuentaResponseDTO;
 import com.mscuentas.domain.exception.DomainException;
 import com.mscuentas.domain.model.Cuenta;
-import com.mscuentas.domain.model.TipoCuenta;
 import com.mscuentas.domain.repository.CuentaRepository;
 
 import org.springframework.transaction.annotation.Transactional;

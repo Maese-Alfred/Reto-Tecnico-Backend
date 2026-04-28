@@ -10,7 +10,7 @@ public class RetiroStrategy implements MovimientoStrategy {
     @Override
     public void aplicar(Cuenta cuenta, BigDecimal valor) {
         if(cuenta.getSaldo().compareTo(valor) < 0){
-            throw new SaldoNoDisponibleException("saldo no disponible");
+            throw new SaldoNoDisponibleException("Saldo no disponible");
 
         }
         cuenta.retirar(valor);

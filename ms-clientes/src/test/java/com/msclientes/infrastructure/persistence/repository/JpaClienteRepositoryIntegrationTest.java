@@ -3,30 +3,34 @@ package com.msclientes.infrastructure.persistence.repository;
 import com.msclientes.infrastructure.persistence.entity.ClienteEntity;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
-import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Optional;
-import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-@DataJpaTest
+@SpringBootTest
+@Transactional
+@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 @DisplayName("JpaClienteRepository - Prueba de integración JPA")
 class JpaClienteRepositoryIntegrationTest {
 
     @Autowired
-    private TestEntityManager entityManager;
-
-    @Autowired
     private JpaClienteRepository jpaClienteRepository;
+
+    @MockitoBean
+    private RabbitTemplate rabbitTemplate;
 
     @Test
     @DisplayName("save y findById: persiste y recupera cliente correctamente")
     void saveAndFindById_debeRecuperarCorrectamente() {
         ClienteEntity entity = buildEntity("CLI-001", "7777777777");
-        entityManager.persistAndFlush(entity);
+        jpaClienteRepository.saveAndFlush(entity);
 
         Optional<ClienteEntity> found = jpaClienteRepository.findById("CLI-001");
 
@@ -39,7 +43,7 @@ class JpaClienteRepositoryIntegrationTest {
     @DisplayName("findByIdentificacion: retorna cliente con identificación correcta")
     void findByIdentificacion_debeRetornarCliente() {
         ClienteEntity entity = buildEntity("CLI-002", "8888888888");
-        entityManager.persistAndFlush(entity);
+        jpaClienteRepository.saveAndFlush(entity);
 
         Optional<ClienteEntity> found = jpaClienteRepository.findByIdentificacion("8888888888");
 
@@ -57,8 +61,8 @@ class JpaClienteRepositoryIntegrationTest {
     @Test
     @DisplayName("findAll: retorna todos los clientes persistidos")
     void findAll_retornaTodosLosClientes() {
-        entityManager.persistAndFlush(buildEntity("CLI-003", "1111111111"));
-        entityManager.persistAndFlush(buildEntity("CLI-004", "2222222222"));
+        jpaClienteRepository.saveAndFlush(buildEntity("CLI-003", "1111111111"));
+        jpaClienteRepository.saveAndFlush(buildEntity("CLI-004", "2222222222"));
 
         assertThat(jpaClienteRepository.findAll()).hasSizeGreaterThanOrEqualTo(2);
     }
@@ -67,7 +71,7 @@ class JpaClienteRepositoryIntegrationTest {
     @DisplayName("delete: elimina el cliente correctamente")
     void delete_eliminaCliente() {
         ClienteEntity entity = buildEntity("CLI-005", "3333333333");
-        entityManager.persistAndFlush(entity);
+        jpaClienteRepository.saveAndFlush(entity);
 
         jpaClienteRepository.deleteById("CLI-005");
 
