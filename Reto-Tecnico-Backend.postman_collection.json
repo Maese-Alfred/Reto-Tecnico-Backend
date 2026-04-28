@@ -1,0 +1,662 @@
+{
+  "info": {
+    "name": "Reto Técnico Backend - Sofka",
+    "_postman_id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+    "description": "Colección completa para ms-clientes (8080) y ms-cuentas (8081).\n\nF1 – CRUD Clientes, Cuentas y Movimientos\nF2 – Registro de movimientos con actualización de saldo\nF3 – Control de saldo insuficiente\nF4 – Reporte de estado de cuenta",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "base_clientes",
+      "value": "http://localhost:8080",
+      "type": "string"
+    },
+    {
+      "key": "base_cuentas",
+      "value": "http://localhost:8081",
+      "type": "string"
+    },
+    {
+      "key": "clienteId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "cuentaId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "movimientoId",
+      "value": "",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "Clientes",
+      "description": "CRUD completo sobre el microservicio ms-clientes (puerto 8080)",
+      "item": [
+        {
+          "name": "Crear cliente",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "    const body = pm.response.json();",
+                  "    pm.collectionVariables.set('clienteId', body.clienteId);",
+                  "    pm.test('Cliente creado - status 201', () => pm.response.to.have.status(201));",
+                  "    pm.test('Tiene clienteId', () => pm.expect(body.clienteId).to.be.a('string').and.not.empty);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre\": \"Juan Perez\",\n  \"genero\": \"Masculino\",\n  \"edad\": 30,\n  \"identificacion\": \"1234567890\",\n  \"direccion\": \"Av. Amazonas 123\",\n  \"telefono\": \"0991234567\",\n  \"contrasena\": \"Pass1234\"\n}"
+            },
+            "url": {
+              "raw": "{{base_clientes}}/clientes",
+              "host": ["{{base_clientes}}"],
+              "path": ["clientes"]
+            },
+            "description": "F1 – Crea un nuevo cliente. Guarda automáticamente `clienteId` en variable de colección."
+          }
+        },
+        {
+          "name": "Listar todos los clientes",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Respuesta es array', () => pm.expect(pm.response.json()).to.be.an('array'));"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_clientes}}/clientes",
+              "host": ["{{base_clientes}}"],
+              "path": ["clientes"]
+            },
+            "description": "F1 – Obtiene la lista completa de clientes registrados."
+          }
+        },
+        {
+          "name": "Obtener cliente por ID",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "const body = pm.response.json();",
+                  "pm.test('clienteId coincide', () => pm.expect(body.clienteId).to.eql(pm.collectionVariables.get('clienteId')));"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_clientes}}/clientes/{{clienteId}}",
+              "host": ["{{base_clientes}}"],
+              "path": ["clientes", "{{clienteId}}"]
+            },
+            "description": "F1 – Obtiene un cliente por su UUID. Usa la variable `clienteId`."
+          }
+        },
+        {
+          "name": "Actualizar cliente",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "const body = pm.response.json();",
+                  "pm.test('Dirección actualizada', () => pm.expect(body.direccion).to.eql('Calle Nueva 456'));"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"direccion\": \"Calle Nueva 456\",\n  \"telefono\": \"0987654321\"\n}"
+            },
+            "url": {
+              "raw": "{{base_clientes}}/clientes/{{clienteId}}",
+              "host": ["{{base_clientes}}"],
+              "path": ["clientes", "{{clienteId}}"]
+            },
+            "description": "F1 – Actualiza dirección y/o teléfono del cliente. Solo los campos enviados se modifican."
+          }
+        },
+        {
+          "name": "Eliminar cliente (soft delete)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 204 No Content', () => pm.response.to.have.status(204));"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "url": {
+              "raw": "{{base_clientes}}/clientes/{{clienteId}}",
+              "host": ["{{base_clientes}}"],
+              "path": ["clientes", "{{clienteId}}"]
+            },
+            "description": "F1 – Desactiva el cliente (soft delete). Retorna 204 sin cuerpo."
+          }
+        },
+        {
+          "name": "[Error] Crear cliente con datos inválidos",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 400 Bad Request', () => pm.response.to.have.status(400));"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre\": \"\",\n  \"genero\": \"M\",\n  \"edad\": -5,\n  \"identificacion\": \"\"\n}"
+            },
+            "url": {
+              "raw": "{{base_clientes}}/clientes",
+              "host": ["{{base_clientes}}"],
+              "path": ["clientes"]
+            },
+            "description": "Validación Bean Validation: campos @NotBlank vacíos y edad inválida → 400."
+          }
+        }
+      ]
+    },
+    {
+      "name": "Cuentas",
+      "description": "CRUD completo sobre el microservicio ms-cuentas (puerto 8081)",
+      "item": [
+        {
+          "name": "Crear cuenta",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "    const body = pm.response.json();",
+                  "    pm.collectionVariables.set('cuentaId', body.cuentaId);",
+                  "    pm.test('Cuenta creada - status 201', () => pm.response.to.have.status(201));",
+                  "    pm.test('Tiene cuentaId', () => pm.expect(body.cuentaId).to.be.a('string').and.not.empty);",
+                  "    pm.test('Saldo inicial correcto', () => pm.expect(Number(body.saldo)).to.eql(1000.00));",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"numeroCuenta\": \"478758\",\n  \"tipoCuenta\": \"AHORRO\",\n  \"saldoInicial\": 1000.00,\n  \"clienteId\": \"{{clienteId}}\"\n}"
+            },
+            "url": {
+              "raw": "{{base_cuentas}}/cuentas",
+              "host": ["{{base_cuentas}}"],
+              "path": ["cuentas"]
+            },
+            "description": "F1 – Crea una cuenta asociada a un cliente. Tipos válidos: AHORRO, CORRIENTE."
+          }
+        },
+        {
+          "name": "Listar todas las cuentas",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Respuesta es array', () => pm.expect(pm.response.json()).to.be.an('array'));"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_cuentas}}/cuentas",
+              "host": ["{{base_cuentas}}"],
+              "path": ["cuentas"]
+            },
+            "description": "F1 – Lista todas las cuentas registradas."
+          }
+        },
+        {
+          "name": "Obtener cuenta por ID",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "const body = pm.response.json();",
+                  "pm.test('cuentaId coincide', () => pm.expect(body.cuentaId).to.eql(pm.collectionVariables.get('cuentaId')));"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_cuentas}}/cuentas/{{cuentaId}}",
+              "host": ["{{base_cuentas}}"],
+              "path": ["cuentas", "{{cuentaId}}"]
+            },
+            "description": "F1 – Obtiene una cuenta por su UUID."
+          }
+        },
+        {
+          "name": "Actualizar cuenta",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"tipoCuenta\": \"CORRIENTE\",\n  \"estado\": true\n}"
+            },
+            "url": {
+              "raw": "{{base_cuentas}}/cuentas/{{cuentaId}}",
+              "host": ["{{base_cuentas}}"],
+              "path": ["cuentas", "{{cuentaId}}"]
+            },
+            "description": "F1 – Actualiza tipo y/o estado de la cuenta. `estado: false` realiza soft-delete."
+          }
+        },
+        {
+          "name": "Eliminar cuenta (soft delete)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 204 No Content', () => pm.response.to.have.status(204));"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "url": {
+              "raw": "{{base_cuentas}}/cuentas/{{cuentaId}}",
+              "host": ["{{base_cuentas}}"],
+              "path": ["cuentas", "{{cuentaId}}"]
+            },
+            "description": "F1 – Desactiva la cuenta (soft delete). Retorna 204."
+          }
+        },
+        {
+          "name": "[Error] Crear cuenta con saldo negativo",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 400 Bad Request', () => pm.response.to.have.status(400));"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"numeroCuenta\": \"000-ERR\",\n  \"tipoCuenta\": \"AHORRO\",\n  \"saldoInicial\": -500.00,\n  \"clienteId\": \"some-client-id\"\n}"
+            },
+            "url": {
+              "raw": "{{base_cuentas}}/cuentas",
+              "host": ["{{base_cuentas}}"],
+              "path": ["cuentas"]
+            },
+            "description": "Validación: saldoInicial negativo no permitido → 400."
+          }
+        }
+      ]
+    },
+    {
+      "name": "Movimientos",
+      "description": "Registro y consulta de movimientos. F2: actualización de saldo. F3: saldo insuficiente.",
+      "item": [
+        {
+          "name": "Registrar movimiento - DEPOSITO",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "    const body = pm.response.json();",
+                  "    pm.collectionVariables.set('movimientoId', body.movimientoId);",
+                  "    pm.test('Movimiento creado - status 201', () => pm.response.to.have.status(201));",
+                  "    pm.test('Saldo disponible aumentó', () => pm.expect(Number(body.saldoDisponible)).to.eql(1200.00));",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"cuentaId\": \"{{cuentaId}}\",\n  \"tipoMovimiento\": \"DEPOSITO\",\n  \"valor\": 200.00\n}"
+            },
+            "url": {
+              "raw": "{{base_cuentas}}/movimientos",
+              "host": ["{{base_cuentas}}"],
+              "path": ["movimientos"]
+            },
+            "description": "F2 – Depósito: incrementa el saldo. El campo `valor` siempre es positivo; el tipo determina la operación."
+          }
+        },
+        {
+          "name": "Registrar movimiento - RETIRO",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 201', () => pm.response.to.have.status(201));",
+                  "const body = pm.response.json();",
+                  "pm.test('Saldo disponible disminuyó', () => pm.expect(Number(body.saldoDisponible)).to.eql(1000.00));"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"cuentaId\": \"{{cuentaId}}\",\n  \"tipoMovimiento\": \"RETIRO\",\n  \"valor\": 200.00\n}"
+            },
+            "url": {
+              "raw": "{{base_cuentas}}/movimientos",
+              "host": ["{{base_cuentas}}"],
+              "path": ["movimientos"]
+            },
+            "description": "F2 – Retiro: reduce el saldo. Requiere saldo suficiente."
+          }
+        },
+        {
+          "name": "Obtener movimiento por ID",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "const body = pm.response.json();",
+                  "pm.test('movimientoId coincide', () => pm.expect(body.movimientoId).to.eql(pm.collectionVariables.get('movimientoId')));"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_cuentas}}/movimientos/{{movimientoId}}",
+              "host": ["{{base_cuentas}}"],
+              "path": ["movimientos", "{{movimientoId}}"]
+            },
+            "description": "F2 – Obtiene el detalle de un movimiento por su UUID."
+          }
+        },
+        {
+          "name": "Listar movimientos por cuenta",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Respuesta es array', () => pm.expect(pm.response.json()).to.be.an('array'));"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_cuentas}}/movimientos?cuentaId={{cuentaId}}",
+              "host": ["{{base_cuentas}}"],
+              "path": ["movimientos"],
+              "query": [
+                {
+                  "key": "cuentaId",
+                  "value": "{{cuentaId}}"
+                }
+              ]
+            },
+            "description": "F2 – Lista el historial de transacciones de una cuenta específica."
+          }
+        },
+        {
+          "name": "[Error F3] Retiro con saldo insuficiente → 409",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 409 Conflict', () => pm.response.to.have.status(409));",
+                  "const body = pm.response.json();",
+                  "pm.test('Mensaje \"Saldo no disponible\"', () => pm.expect(body.message).to.include('Saldo no disponible'));"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"cuentaId\": \"{{cuentaId}}\",\n  \"tipoMovimiento\": \"RETIRO\",\n  \"valor\": 999999.99\n}"
+            },
+            "url": {
+              "raw": "{{base_cuentas}}/movimientos",
+              "host": ["{{base_cuentas}}"],
+              "path": ["movimientos"]
+            },
+            "description": "F3 – Intento de retiro que supera el saldo → 409 Conflict con mensaje 'Saldo no disponible'."
+          }
+        },
+        {
+          "name": "[Error F3] Retiro cuenta inexistente → 400",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 400', () => pm.response.to.have.status(400));"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"cuentaId\": \"cuenta-inexistente-uuid\",\n  \"tipoMovimiento\": \"DEPOSITO\",\n  \"valor\": 100.00\n}"
+            },
+            "url": {
+              "raw": "{{base_cuentas}}/movimientos",
+              "host": ["{{base_cuentas}}"],
+              "path": ["movimientos"]
+            },
+            "description": "F3 – Cuenta no encontrada → 400 Bad Request."
+          }
+        }
+      ]
+    },
+    {
+      "name": "Reportes (F4)",
+      "description": "F4 – Reporte de estado de cuenta por cliente y rango de fechas.",
+      "item": [
+        {
+          "name": "Reporte estado de cuenta - rango de fechas",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "const body = pm.response.json();",
+                  "pm.test('Tiene clienteId', () => pm.expect(body.clienteId).to.be.a('string'));",
+                  "pm.test('Tiene array de cuentas', () => pm.expect(body.cuentas).to.be.an('array'));",
+                  "if (body.cuentas.length > 0) {",
+                  "    const cuenta = body.cuentas[0];",
+                  "    pm.test('Cuenta tiene numeroCuenta', () => pm.expect(cuenta.numeroCuenta).to.be.a('string'));",
+                  "    pm.test('Cuenta tiene movimientos', () => pm.expect(cuenta.movimientos).to.be.an('array'));",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_cuentas}}/reportes?clienteId={{clienteId}}&fechaInicio=2024-01-01&fechaFin=2024-12-31",
+              "host": ["{{base_cuentas}}"],
+              "path": ["reportes"],
+              "query": [
+                {
+                  "key": "clienteId",
+                  "value": "{{clienteId}}",
+                  "description": "UUID del cliente"
+                },
+                {
+                  "key": "fechaInicio",
+                  "value": "2024-01-01",
+                  "description": "Fecha inicio en formato YYYY-MM-DD"
+                },
+                {
+                  "key": "fechaFin",
+                  "value": "2024-12-31",
+                  "description": "Fecha fin en formato YYYY-MM-DD"
+                }
+              ]
+            },
+            "description": "F4 – Retorna el estado de cuenta del cliente con sus cuentas y el detalle de movimientos dentro del rango especificado.\n\nRespuesta JSON:\n```json\n{\n  \"clienteId\": \"...\",\n  \"cuentas\": [\n    {\n      \"numeroCuenta\": \"478758\",\n      \"tipoCuenta\": \"AHORRO\",\n      \"saldo\": 1000.00,\n      \"movimientos\": [\n        {\n          \"fecha\": \"2024-06-01T10:00:00\",\n          \"tipo\": \"DEPOSITO\",\n          \"valor\": 200.00,\n          \"saldo\": 1200.00\n        }\n      ]\n    }\n  ]\n}\n```"
+          }
+        },
+        {
+          "name": "Reporte sin movimientos (rango futuro)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "const body = pm.response.json();",
+                  "pm.test('Cuentas con movimientos vacíos', () => {",
+                  "    body.cuentas.forEach(c => pm.expect(c.movimientos).to.be.an('array'));",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_cuentas}}/reportes?clienteId={{clienteId}}&fechaInicio=2099-01-01&fechaFin=2099-12-31",
+              "host": ["{{base_cuentas}}"],
+              "path": ["reportes"],
+              "query": [
+                { "key": "clienteId", "value": "{{clienteId}}" },
+                { "key": "fechaInicio", "value": "2099-01-01" },
+                { "key": "fechaFin", "value": "2099-12-31" }
+              ]
+            },
+            "description": "F4 – Rango de fechas sin movimientos: retorna cuentas con lista de movimientos vacía."
+          }
+        }
+      ]
+    }
+  ]
+}
